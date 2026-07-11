@@ -1,0 +1,84 @@
+date_scraped,season,section,stat_category,rank,player,team,value
+2026-07-11,2025/26,Scoring,Points,1,Sacha Feinberg-Mngomezulu,DHL Stormers,169
+2026-07-11,2025/26,Scoring,Points,2,Chris William Smith,Lions,154
+2026-07-11,2025/26,Scoring,Points,3,Handre Pollard,Vodacom Bulls,129
+2026-07-11,2025/26,Scoring,Points,4,Dan Edwards,Ospreys,110
+2026-07-11,2025/26,Scoring,Points,5,Nathan Doak,Ulster,97
+2026-07-11,2025/26,Scoring,Try Scored,1,Embrose Papier,Vodacom Bulls,12
+2026-07-11,2025/26,Scoring,Try Scored,2,Evan Roos,DHL Stormers,12
+2026-07-11,2025/26,Scoring,Try Scored,3,Zac Ward,Ulster,11
+2026-07-11,2025/26,Scoring,Try Scored,4,Johann Grobbelaar,Vodacom Bulls,10
+2026-07-11,2025/26,Scoring,Try Scored,5,Sacha Feinberg-Mngomezulu,DHL Stormers,10
+2026-07-11,2025/26,Scoring,Conversion,1,Chris William Smith,Lions,49
+2026-07-11,2025/26,Scoring,Conversion,2,Chris William Smith,Lions,49
+2026-07-11,2025/26,Scoring,Conversion,3,Handre Pollard,Vodacom Bulls,39
+2026-07-11,2025/26,Scoring,Conversion,4,Dan Edwards,Ospreys,35
+2026-07-11,2025/26,Scoring,Conversion,5,Sacha Feinberg-Mngomezulu,DHL Stormers,34
+2026-07-11,2025/26,Scoring,Penalty Goal,1,Jurie Matthee,DHL Stormers,18
+2026-07-11,2025/26,Scoring,Penalty Goal,2,Sacha Feinberg-Mngomezulu,DHL Stormers,17
+2026-07-11,2025/26,Scoring,Penalty Goal,3,Jacob Umaga,Benetton,17
+2026-07-11,2025/26,Scoring,Penalty Goal,4,Chris William Smith,Lions,17
+2026-07-11,2025/26,Scoring,Penalty Goal,5,Chris William Smith,Lions,17
+2026-07-11,2025/26,Scoring,Drop Goal,1,Jack Crowley,Munster,1
+2026-07-11,2025/26,Scoring,Drop Goal,2,Keagan Johannes,Vodacom Bulls,1
+2026-07-11,2025/26,Scoring,Drop Goal,3,Rhyno Smith,Benetton,1
+2026-07-11,2025/26,Attack,Carries,1,Sean Jansen,Connacht,211
+2026-07-11,2025/26,Attack,Carries,2,Alun Lawrence,Cardiff,210
+2026-07-11,2025/26,Attack,Carries,3,Fletcher Anderson,Scarlets,190
+2026-07-11,2025/26,Attack,Carries,4,Evan Roos,DHL Stormers,185
+2026-07-11,2025/26,Attack,Carries,5,Stafford McDowall,Glasgow,169
+2026-07-11,2025/26,Attack,Metres Made,1,Zac Ward,Ulster,"1,113"
+2026-07-11,2025/26,Attack,Metres Made,2,Josh McKay,Glasgow,873
+2026-07-11,2025/26,Attack,Metres Made,3,Ignacio Mendy,Benetton,821
+2026-07-11,2025/26,Attack,Metres Made,4,Kyle Rowe,Glasgow,804
+2026-07-11,2025/26,Attack,Metres Made,5,Sacha Feinberg-Mngomezulu,DHL Stormers,762
+2026-07-11,2025/26,Attack,Clean Break,1,Zac Ward,Ulster,20
+2026-07-11,2025/26,Attack,Clean Break,2,Sacha Feinberg-Mngomezulu,DHL Stormers,19
+2026-07-11,2025/26,Attack,Clean Break,3,Ignacio Mendy,Benetton,19
+2026-07-11,2025/26,Attack,Clean Break,4,Leolin Zas,DHL Stormers,15
+2026-07-11,2025/26,Attack,Clean Break,5,Kyle Steyn,Glasgow,14
+2026-07-11,2025/26,Attack,Defender Beaten,1,Zac Ward,Ulster,56
+2026-07-11,2025/26,Attack,Defender Beaten,2,Alex Nankivell,Munster,50
+2026-07-11,2025/26,Attack,Defender Beaten,3,Kyle Rowe,Glasgow,49
+2026-07-11,2025/26,Attack,Defender Beaten,4,Sacha Feinberg-Mngomezulu,DHL Stormers,49
+2026-07-11,2025/26,Attack,Defender Beaten,5,Andre Esterhuizen,Sharks,48
+2026-07-11,2025/26,Attack,Offload,1,Cameron Hanekom,Vodacom Bulls,21
+2026-07-11,2025/26,Attack,Offload,2,RG Snyman,Leinster,20
+2026-07-11,2025/26,Attack,Offload,3,Gavin Coombes,Munster,19
+2026-07-11,2025/26,Attack,Offload,4,Josh McKay,Glasgow,19
+2026-07-11,2025/26,Attack,Offload,5,Jimmy O'Brien,Leinster,19
+2026-07-11,2025/26,Defence,Tackle,1,Dan Thomas,Cardiff,246
+2026-07-11,2025/26,Defence,Tackle,2,Alun Lawrence,Cardiff,217
+2026-07-11,2025/26,Defence,Tackle,3,Sean Jansen,Connacht,209
+2026-07-11,2025/26,Defence,Tackle,4,Johann Grobbelaar,Vodacom Bulls,195
+2026-07-11,2025/26,Defence,Tackle,5,Paul de Villiers,DHL Stormers,190
+2026-07-11,2025/26,Defence,Missed Tackle,1,Angelo Davids,Lions,38
+2026-07-11,2025/26,Defence,Missed Tackle,2,Jack Murphy,Ulster,37
+2026-07-11,2025/26,Defence,Missed Tackle,3,Leolin Zas,DHL Stormers,35
+2026-07-11,2025/26,Defence,Missed Tackle,4,Dan Thomas,Cardiff,35
+2026-07-11,2025/26,Defence,Missed Tackle,5,Canan Moodie,Vodacom Bulls,28
+2026-07-11,2025/26,Defence,Turnovers Conceded,1,Sacha Feinberg-Mngomezulu,DHL Stormers,32
+2026-07-11,2025/26,Defence,Turnovers Conceded,2,Werner Kok,Ulster,32
+2026-07-11,2025/26,Defence,Turnovers Conceded,3,Damian Willemse,DHL Stormers,28
+2026-07-11,2025/26,Defence,Turnovers Conceded,4,Willie le Roux,Vodacom Bulls,25
+2026-07-11,2025/26,Defence,Turnovers Conceded,5,Kyle Steyn,Glasgow,24
+2026-07-11,2025/26,Discipline,Penalty Conceded,1,Michael Ala'alatoa,Munster,23
+2026-07-11,2025/26,Discipline,Penalty Conceded,2,Evan Roos,DHL Stormers,21
+2026-07-11,2025/26,Discipline,Penalty Conceded,3,SJ Kotze,Lions,20
+2026-07-11,2025/26,Discipline,Penalty Conceded,4,Keiron Assiratti,Cardiff,19
+2026-07-11,2025/26,Discipline,Penalty Conceded,5,Henry Thomas,Scarlets,18
+2026-07-11,2025/26,Discipline,Yellow Card,1,Adam Hastings,Glasgow,2
+2026-07-11,2025/26,Discipline,Yellow Card,2,Ruan Nortje,Vodacom Bulls,2
+2026-07-11,2025/26,Discipline,Yellow Card,3,Adre Smith,DHL Stormers,2
+2026-07-11,2025/26,Discipline,Yellow Card,4,Brian Deeny,Leinster,2
+2026-07-11,2025/26,Discipline,Yellow Card,5,Joe Roberts,Scarlets,2
+2026-07-11,2025/26,Discipline,Red Card,1,Diarmuid Barron,Munster,1
+2026-07-11,2025/26,Discipline,Red Card,2,Harri Morris,Edinburgh,1
+2026-07-11,2025/26,Discipline,Red Card,3,Ruan Ackermann,DHL Stormers,1
+2026-07-11,2025/26,Discipline,Red Card,4,Daniel Kasende,Ospreys,1
+2026-07-11,2025/26,Discipline,Red Card,5,Ross Moriarty,Ospreys,1
+2026-07-11,2025/26,Lineout,Lineout Throws Won,1,Johann Grobbelaar,Vodacom Bulls,173
+2026-07-11,2025/26,Lineout,Lineout Throws Won,2,Andre-Hugo Venter,DHL Stormers,159
+2026-07-11,2025/26,Lineout,Lineout Throws Won,3,Liam Belcher,Cardiff,135
+2026-07-11,2025/26,Lineout,Lineout Throws Won,4,Ewan Ashman,Edinburgh,118
+2026-07-11,2025/26,Lineout,Lineout Throws Won,5,Brodie Coghlan,Dragons,114
