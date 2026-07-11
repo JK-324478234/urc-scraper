@@ -1,0 +1,42 @@
+name: Scrape URC Data
+
+on:
+  schedule:
+    # Every Monday at 07:00 Dublin time — adjusts automatically for daylight saving.
+    # Change the day/time here if you'd rather it run on a different day.
+    - cron: '0 7 * * 1'
+      timezone: 'Europe/Dublin'
+  workflow_dispatch: # adds a manual "Run workflow" button in the Actions tab, for testing
+
+permissions:
+  contents: write # required so the workflow can commit the updated CSVs back to the repo
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run scraper
+        run: python urc_scraper.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "urc-scraper-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          # Always touch this file so the repo shows a commit every run, even in
+          # weeks where the standings/stats haven't changed (e.g. the off-season).
+          # GitHub auto-disables scheduled workflows after 60 days with no commits
+          # at all, so this keeps the automation alive year-round.
+          echo "Last checked: $(date -u +'%Y-%m-%d %H:%M UTC')" > last_checked.txt
+
+          git add urc_standings.csv urc_stats.csv last_checked.txt
+          git diff --staged --quiet && echo "No data changes this run" || git commit -m "Update URC data - $(date -u +'%Y-%m-%d')"
+          git push
