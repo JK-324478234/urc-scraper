@@ -1,4 +1,4 @@
-name: Scrape URC Data
+name: Scrape Rugby Data
 
 on:
   schedule:
@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
 
       - name: Run scraper
-        run: python urc_scraper.py
+        run: python rugby_scraper.py
 
       - name: Commit updated data
         run: |
@@ -32,11 +32,12 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
 
           # Always touch this file so the repo shows a commit every run, even in
-          # weeks where the standings/stats haven't changed (e.g. the off-season).
+          # weeks where none of the fetched competitions have new data (e.g. an
+          # off-season for that particular tournament).
           # GitHub auto-disables scheduled workflows after 60 days with no commits
           # at all, so this keeps the automation alive year-round.
           echo "Last checked: $(date -u +'%Y-%m-%d %H:%M UTC')" > last_checked.txt
 
-          git add urc_standings.csv urc_players.csv urc_team_stats.csv last_checked.txt
-          git diff --staged --quiet && echo "No data changes this run" || git commit -m "Update URC data - $(date -u +'%Y-%m-%d')"
+          git add rugby_standings.csv rugby_players.csv rugby_team_stats.csv last_checked.txt
+          git diff --staged --quiet && echo "No data changes this run" || git commit -m "Update rugby data - $(date -u +'%Y-%m-%d')"
           git push
