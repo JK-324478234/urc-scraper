@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-URC Data Scraper — All Things Rugby
+URC Data Scraper v3 — All Things Rugby (single-fetch, full-data edition)
 
-Fetches https://allthingsrugby.com/competitions/united-rugby-championship,
-pulls out the embedded standings + player stat leaderboards, and appends
-them to two running CSV files (urc_standings.csv, urc_stats.csv) tagged
-with the date the script ran.
+One request to the competition page gets everything:
+  - standings          -> urc_standings.csv    (one row per team)
+  - full player stats  -> urc_players.csv      (one row per player, 16 metrics)
+  - full team stats    -> urc_team_stats.csv   (one row per team, 21 metrics —
+                           includes 5 stats that are only tracked at team level:
+                           turnover-won, lineouts-lost, lineout-steals,
+                           scrums-won, scrums-lost)
 
-Run it once per round (manually, or on a schedule — see the accompanying
-setup notes) and your CSVs grow round by round automatically.
+Each row is tagged with the date the script ran, so the CSVs grow over time.
 
 Usage:
     python urc_scraper.py                  # live fetch from the web
@@ -26,7 +28,6 @@ from datetime import date
 
 URL = "https://allthingsrugby.com/competitions/united-rugby-championship"
 HEADERS = {
-    # A normal browser user-agent avoids the request being treated as a bot
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -35,20 +36,35 @@ HEADERS = {
 }
 
 STANDINGS_CSV = "urc_standings.csv"
-STATS_CSV = "urc_stats.csv"
+PLAYERS_CSV = "urc_players.csv"
+TEAM_STATS_CSV = "urc_team_stats.csv"
 
 STANDINGS_FIELDS = [
     "date_scraped", "season", "rank", "team", "played", "won", "drawn",
     "lost", "points_diff", "bonus_points", "points", "form",
 ]
-STATS_FIELDS = [
-    "date_scraped", "season", "section", "stat_category", "rank",
-    "player", "team", "value",
+
+# Metrics tracked per-player (column id -> csv column name)
+PLAYER_METRICS = [
+    ("points", "points"), ("try-scored", "try_scored"), ("conversion", "conversion"),
+    ("penalty-goal", "penalty_goal"), ("drop-goal", "drop_goal"),
+    ("carries", "carries"), ("metres-made", "metres_made"), ("clean-break", "clean_break"),
+    ("defender-beaten", "defender_beaten"), ("offload", "offload"),
+    ("tackle", "tackle"), ("missed-tackle", "missed_tackle"), ("turnovers-conceded", "turnovers_conceded"),
+    ("penalty-conceded", "penalty_conceded"), ("yellow-card", "yellow_card"), ("red-card", "red_card"),
+    ("lineout-throws-won", "lineout_throws_won"),
 ]
+# Metrics tracked per-team (superset — includes 5 the site never breaks down by player)
+TEAM_METRICS = PLAYER_METRICS + [
+    ("turnover-won", "turnover_won"), ("lineouts-lost", "lineouts_lost"),
+    ("lineout-steals", "lineout_steals"), ("scrums-won", "scrums_won"), ("scrums-lost", "scrums_lost"),
+]
+
+PLAYERS_FIELDS = ["date_scraped", "season", "team", "player"] + [c for _, c in PLAYER_METRICS]
+TEAM_STATS_FIELDS = ["date_scraped", "season", "team"] + [c for _, c in TEAM_METRICS]
 
 
 def get_html(source: str) -> str:
-    """Fetch live from the web, or read a local file if --source looks like a path."""
     if source.startswith("http"):
         import urllib.request
         req = urllib.request.Request(source, headers=HEADERS)
@@ -60,10 +76,7 @@ def get_html(source: str) -> str:
 
 
 def _find_matching_brace(s: str, start_idx: int) -> int:
-    """Given s[start_idx] == '{', return the index of its matching '}'."""
-    depth = 0
-    in_string = False
-    escape = False
+    depth, in_string, escape = 0, False, False
     for i in range(start_idx, len(s)):
         c = s[i]
         if escape:
@@ -87,32 +100,17 @@ def _find_matching_brace(s: str, start_idx: int) -> int:
 
 
 def extract_pagedata(html: str) -> dict:
-    """
-    All Things Rugby (Next.js) streams its page data into the HTML inside
-    script tags like:  self.__next_f.push([1,"...escaped json..."])
-    The largest such chunk holds the full pageData object (league, news,
-    teams, standings, fixtures, stats) regardless of which tab is shown.
-    """
     chunks = re.findall(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)(?=</script>)', html, re.DOTALL)
     if not chunks:
-        raise RuntimeError(
-            "No embedded data found in the page. The site may have changed "
-            "its structure, or this response is an empty JS shell rather than "
-            "the fully rendered page."
-        )
-
-    # The chunk containing pageData is the one we want — find it directly
-    # rather than assuming it's the largest, in case that changes.
+        raise RuntimeError("No embedded data found — page may be an empty JS shell.")
     target = None
     for chunk in chunks:
         if '\\"pageData\\"' in chunk or '"pageData":{' in chunk:
             target = chunk
             break
     if target is None:
-        target = max(chunks, key=len)  # fallback: biggest chunk
-
+        target = max(chunks, key=len)
     unescaped = json.loads('"' + target + '"')
-
     marker = '"pageData":{'
     start = unescaped.find(marker)
     if start == -1:
@@ -121,90 +119,106 @@ def extract_pagedata(html: str) -> dict:
     end_idx = _find_matching_brace(unescaped, start_json)
     if end_idx == -1:
         raise RuntimeError("Could not find the end of the pageData JSON object.")
+    return json.loads(unescaped[start_json:end_idx + 1])
 
-    payload_str = unescaped[start_json:end_idx + 1]
-    return json.loads(payload_str)
+
+def get_season_label(stats_block: dict) -> str:
+    season = stats_block.get("currentSeasonId", "")
+    if season and "/" not in str(season):
+        for s in stats_block.get("seasons", []):
+            if s.get("id") == season:
+                return s.get("label", season)
+    return season
 
 
 def rows_from_standings(pagedata: dict, run_date: str) -> list:
     rows = []
-    standings = pagedata.get("standings", {})
-    for table in standings.get("tables", []):
+    for table in pagedata.get("standings", {}).get("tables", []):
         season = table.get("seasonName", "")
         for r in table.get("rows", []):
             rows.append({
-                "date_scraped": run_date,
-                "season": season,
-                "rank": r.get("rank"),
-                "team": r.get("team"),
-                "played": r.get("played"),
-                "won": r.get("won"),
-                "drawn": r.get("drawn"),
-                "lost": r.get("lost"),
-                "points_diff": r.get("pd"),
-                "bonus_points": r.get("bp"),
-                "points": r.get("pts"),
+                "date_scraped": run_date, "season": season, "rank": r.get("rank"),
+                "team": r.get("team"), "played": r.get("played"), "won": r.get("won"),
+                "drawn": r.get("drawn"), "lost": r.get("lost"), "points_diff": r.get("pd"),
+                "bonus_points": r.get("bp"), "points": r.get("pts"),
                 "form": "-".join(r.get("form", []) or []),
             })
     return rows
 
 
-def rows_from_stats(pagedata: dict, run_date: str) -> list:
-    rows = []
+def rows_from_player_stats(pagedata: dict, run_date: str) -> list:
     stats_block = pagedata.get("stats", {})
-    stats = stats_block.get("players", {})
-    current_id = stats_block.get("currentSeasonId", "")
-    season = next(
-        (s.get("label") for s in stats_block.get("seasons", []) if s.get("id") == current_id),
-        current_id,
-    )
-    for section in stats.get("sections", []):
-        section_title = section.get("title", "")
-        for card in section.get("cards", []):
-            category = card.get("label", "")
-            for e in card.get("entries", []):
-                rows.append({
-                    "date_scraped": run_date,
-                    "season": season,
-                    "section": section_title,
-                    "stat_category": category,
-                    "rank": e.get("rank"),
-                    "player": e.get("name"),
-                    "team": e.get("team"),
-                    "value": e.get("value"),
-                })
+    season = get_season_label(stats_block)
+    table_cats = stats_block.get("players", {}).get("tableCategories", [])
+
+    # Merge every category's rows into one dict per (player, team)
+    merged = {}
+    for cat in table_cats:
+        for row in cat.get("rows", []):
+            name = row.get("player")
+            if not name:
+                continue
+            key = (name, row.get("team", ""))
+            merged.setdefault(key, {}).update(row.get("values", {}))
+
+    rows = []
+    for (name, team), values in sorted(merged.items()):
+        out = {"date_scraped": run_date, "season": season, "team": team, "player": name}
+        for json_id, col in PLAYER_METRICS:
+            out[col] = values.get(json_id, "")
+        rows.append(out)
+    return rows
+
+
+def rows_from_team_stats(pagedata: dict, run_date: str) -> list:
+    stats_block = pagedata.get("stats", {})
+    season = get_season_label(stats_block)
+    table_cats = stats_block.get("team", {}).get("tableCategories", [])
+
+    merged = {}
+    for cat in table_cats:
+        for row in cat.get("rows", []):
+            team = row.get("team")
+            if not team:
+                continue
+            merged.setdefault(team, {}).update(row.get("values", {}))
+
+    rows = []
+    for team, values in sorted(merged.items()):
+        out = {"date_scraped": run_date, "season": season, "team": team}
+        for json_id, col in TEAM_METRICS:
+            out[col] = values.get(json_id, "")
+        rows.append(out)
     return rows
 
 
 def append_csv(path: str, rows: list, fieldnames: list, run_date: str, force: bool) -> str:
     file_exists = os.path.exists(path)
-
     if file_exists and not force:
         with open(path, "r", newline="", encoding="utf-8") as f:
             existing = list(csv.DictReader(f))
         if any(r.get("date_scraped") == run_date for r in existing):
             return f"Skipped {path} — already has an entry for {run_date} (use --force to add anyway)"
-
     mode = "a" if file_exists else "w"
     with open(path, mode, newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
         writer.writerows(rows)
-
     return f"{'Appended' if file_exists else 'Created'} {path} with {len(rows)} rows for {run_date}"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Scrape URC standings + stats and append to CSV")
+    parser = argparse.ArgumentParser(description="Scrape URC standings + full player/team stats")
     parser.add_argument("--source", default=URL, help="URL to fetch, or path to a local HTML file")
-    parser.add_argument("--force", action="store_true", help="Append even if today's date already has an entry")
-    parser.add_argument("--outdir", default=".", help="Directory to write/append the CSV files in")
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--outdir", default=".")
     args = parser.parse_args()
 
     run_date = date.today().isoformat()
+    os.makedirs(args.outdir, exist_ok=True)
 
-    print(f"Fetching from: {args.source}")
+    print(f"Fetching: {args.source}")
     html = get_html(args.source)
     print(f"Got {len(html):,} characters of HTML")
 
@@ -212,13 +226,14 @@ def main():
     print(f"Found pageData for: {pagedata.get('league', {}).get('name', 'unknown league')}")
 
     standings_rows = rows_from_standings(pagedata, run_date)
-    stats_rows = rows_from_stats(pagedata, run_date)
+    player_rows = rows_from_player_stats(pagedata, run_date)
+    team_rows = rows_from_team_stats(pagedata, run_date)
+    print(f"Extracted {len(standings_rows)} standings, {len(player_rows)} players, {len(team_rows)} team-stat rows")
 
-    print(f"Extracted {len(standings_rows)} standings rows, {len(stats_rows)} stat leaderboard rows")
-
-    os.makedirs(args.outdir, exist_ok=True)
+    print()
     print(append_csv(os.path.join(args.outdir, STANDINGS_CSV), standings_rows, STANDINGS_FIELDS, run_date, args.force))
-    print(append_csv(os.path.join(args.outdir, STATS_CSV), stats_rows, STATS_FIELDS, run_date, args.force))
+    print(append_csv(os.path.join(args.outdir, PLAYERS_CSV), player_rows, PLAYERS_FIELDS, run_date, args.force))
+    print(append_csv(os.path.join(args.outdir, TEAM_STATS_CSV), team_rows, TEAM_STATS_FIELDS, run_date, args.force))
 
 
 if __name__ == "__main__":

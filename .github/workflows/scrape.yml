@@ -37,6 +37,6 @@ jobs:
           # at all, so this keeps the automation alive year-round.
           echo "Last checked: $(date -u +'%Y-%m-%d %H:%M UTC')" > last_checked.txt
 
-          git add urc_standings.csv urc_stats.csv last_checked.txt
+          git add urc_standings.csv urc_players.csv urc_team_stats.csv last_checked.txt
           git diff --staged --quiet && echo "No data changes this run" || git commit -m "Update URC data - $(date -u +'%Y-%m-%d')"
           git push
